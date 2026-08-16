@@ -14,17 +14,35 @@ export const prepareHeaders = (headers) => {
   return headers;
 };
 export const taskApi = createApi({
-  reducerPath: 'taskApi',
+    reducerPath: 'taskApi',
+    tagTypes: ["Tasks"],
     baseQuery: fetchBaseQuery({
     baseUrl: apiUrl,
       prepareHeaders,
    }),
   endpoints: (builder) => ({
     GetAllTasks: builder.query({
-      query: () => `/`,
+        query: () => `/`,
+        providesTags: ["Tasks"],
     }),
+      addTask: builder.mutation({
+          query: (addTodo) => ({
+              url: '/add-task',
+            method: 'POST',
+        body: addTodo,
+          }),
+           invalidatesTags: ["Tasks"],
+      }),
+      deleteTask: builder.mutation({
+          query: (id) => ({
+              url: `/delete-task/${id}`,
+            method: 'DELETE',
+      
+          }),
+           invalidatesTags: ["Tasks"],
+      })
   }),
 })
 
 
-export const { useGetAllTasksQuery } = taskApi
+export const { useGetAllTasksQuery,useAddTaskMutation ,useDeleteTaskMutation} = taskApi

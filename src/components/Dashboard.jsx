@@ -1,9 +1,44 @@
-import { useGetAllTasksQuery } from "../features/todos/todoSlice";
+import { useState } from "react";
+import {
+  useAddTaskMutation,
+  useDeleteTaskMutation,
+  useGetAllTasksQuery,
+} from "../features/todos/todoSlice";
 import "./Dashboard.css";
+import { useDispatch } from "react-redux";
 
 function Dashboard() {
-  const { data, isLoading, isError, error, isFetching } = useGetAllTasksQuery();
+  const { data, isLoading, isError, error } = useGetAllTasksQuery();
+  const [addTask, { isLoading: isAdding }] = useAddTaskMutation();
+  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
+
+  const [task, setTask] = useState();
   let remain = 0;
+
+  const handleTodoInput = (e) => {
+    setTask(e.target.value);
+  };
+
+  const handleAddTask = async (e) => {
+    try {
+      e.preventDefault();
+      if (!task) {
+        alert("please add a task");
+        return;
+      }
+      if (task) {
+        await addTask({
+          taskname: task,
+        }).unwrap();
+      }
+      setTask("");
+
+      alert("task added successfully");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
@@ -16,6 +51,7 @@ function Dashboard() {
       remain++;
     }
   });
+
   return (
     <div className="dashboard">
       <div className="todo-card">
@@ -31,10 +67,19 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="add-task">
-          <input type="text" placeholder="What needs to be done?" />
-          <button>Add Task</button>
-        </div>
+        <form onSubmit={handleAddTask}>
+          <div className="add-task">
+            <input
+              type="text"
+              placeholder="What needs to be done?"
+              name="taskname"
+              onChange={handleTodoInput}
+              value={task}
+            />
+
+            <button type="submit"> {!isAdding ? "Add Task" : "Adding"}</button>
+          </div>
+        </form>
 
         <div className="filters">
           <button className="active">All</button>
@@ -57,7 +102,22 @@ function Dashboard() {
 
                 <div className="task-actions">
                   <button>✏️</button>
-                  <button>🗑️</button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        if (!element._id) {
+                          alert("no task clicked");
+                          return;
+                        }
+                        await deleteTask(element._id).unwrap();
+                        alert("task deleted");
+                      } catch (err) {
+                        console.log(err);
+                      }
+                    }}
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
             );
